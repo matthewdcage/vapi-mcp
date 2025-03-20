@@ -10,6 +10,11 @@ Vapi MCP allows you to create, manage, and interact with voice assistants direct
 - Create and manage voice assistants with different voices and behaviors
 - Retrieve and analyze conversation transcripts
 
+## Documentation
+
+- [Integration Guide](./docs/integration-guide.md) - How to connect to Vapi MCP from other services
+- [Deployment Guide](./docs/deployment-guide.md) - How to deploy Vapi MCP in a Docker environment
+
 ## Installation
 
 ### Prerequisites

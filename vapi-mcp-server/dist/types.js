@@ -1,2 +1,0 @@
-// Vapi API Interfaces
-export {};
