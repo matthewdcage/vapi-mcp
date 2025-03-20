@@ -269,7 +269,7 @@ app.post('/mcp-messages', async (req, res) => {
     console.error('Error processing MCP message:', error);
     return res.status(500).json({
       jsonrpc: '2.0',
-      id: message.id || null,
+      id: req.body?.id || null,
       error: {
         code: -32603,
         message: `Internal error: ${error.message}`
