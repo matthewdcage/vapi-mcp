@@ -31,7 +31,254 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// MCP Server-Sent Events endpoint
+app.get('/sse', (req, res) => {
+  // Set headers for SSE
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  
+  // Send the initial endpoint event as required by MCP protocol
+  res.write(`event: endpoint\ndata: "/mcp-messages"\n\n`);
+  
+  // Keep the connection alive
+  const keepAliveInterval = setInterval(() => {
+    res.write(': keepalive\n\n');
+  }, 30000);
+  
+  // Handle client disconnect
+  req.on('close', () => {
+    clearInterval(keepAliveInterval);
+    console.log('SSE connection closed');
+  });
+});
+
+// MCP messages endpoint for client to post messages
+app.post('/mcp-messages', async (req, res) => {
+  try {
+    const message = req.body;
+    console.log('Received MCP message:', message);
+    
+    // Check if it's a valid JSON-RPC 2.0 message
+    if (message.jsonrpc !== '2.0') {
+      return res.status(400).json({
+        jsonrpc: '2.0',
+        id: message.id,
+        error: {
+          code: -32600,
+          message: 'Invalid Request: Not a valid JSON-RPC 2.0 message'
+        }
+      });
+    }
+    
+    // Handle different MCP protocol methods
+    if (message.method === 'mcp/list_capabilities') {
+      // Return MCP capabilities
+      return res.json({
+        jsonrpc: '2.0',
+        id: message.id,
+        result: {
+          capabilities: {
+            tools: true,
+            resources: false,
+            prompts: false,
+            roots: false
+          },
+          schema_version: '2024-11-05'
+        }
+      });
+    } else if (message.method === 'tools/list') {
+      // Return available tools that map to our API endpoints
+      return res.json({
+        jsonrpc: '2.0',
+        id: message.id,
+        result: {
+          tools: [
+            {
+              name: 'createAssistant',
+              description: 'Create a new voice assistant',
+              schema: {
+                type: 'object',
+                properties: {
+                  name: {
+                    type: 'string',
+                    description: 'Name of the assistant'
+                  },
+                  model: {
+                    type: 'string',
+                    description: 'LLM model to use'
+                  },
+                  voice: {
+                    type: 'string',
+                    description: 'Voice to use'
+                  },
+                  firstMessage: {
+                    type: 'string',
+                    description: 'First message to say'
+                  }
+                },
+                required: ['name', 'model', 'voice']
+              }
+            },
+            {
+              name: 'makeCall',
+              description: 'Make an outbound call',
+              schema: {
+                type: 'object',
+                properties: {
+                  phoneNumber: {
+                    type: 'string',
+                    description: 'Phone number to call'
+                  },
+                  assistantId: {
+                    type: 'string',
+                    description: 'ID of the assistant to use'
+                  },
+                  metadata: {
+                    type: 'object',
+                    description: 'Additional metadata for the call'
+                  }
+                },
+                required: ['phoneNumber', 'assistantId']
+              }
+            },
+            {
+              name: 'getAssistants',
+              description: 'List all assistants',
+              schema: {
+                type: 'object',
+                properties: {}
+              }
+            },
+            {
+              name: 'getAssistant',
+              description: 'Get a specific assistant',
+              schema: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string',
+                    description: 'ID of the assistant'
+                  }
+                },
+                required: ['id']
+              }
+            },
+            {
+              name: 'getCalls',
+              description: 'List all calls',
+              schema: {
+                type: 'object',
+                properties: {}
+              }
+            },
+            {
+              name: 'getCall',
+              description: 'Get a specific call',
+              schema: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string',
+                    description: 'ID of the call'
+                  }
+                },
+                required: ['id']
+              }
+            }
+          ]
+        }
+      });
+    } else if (message.method === 'tools/call') {
+      // Handle tool calls by mapping to our API
+      const { name, arguments: args } = message.params;
+      
+      let result;
+      try {
+        if (name === 'createAssistant') {
+          // Map to POST /api/assistants
+          const response = await fetch(`http://localhost:${port}/api/assistants`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(args)
+          });
+          result = await response.json();
+        } else if (name === 'makeCall') {
+          // Map to POST /api/calls
+          const response = await fetch(`http://localhost:${port}/api/calls`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(args)
+          });
+          result = await response.json();
+        } else if (name === 'getAssistants') {
+          // Map to GET /api/assistants
+          const response = await fetch(`http://localhost:${port}/api/assistants`);
+          result = await response.json();
+        } else if (name === 'getAssistant') {
+          // Map to GET /api/assistants/:id
+          const response = await fetch(`http://localhost:${port}/api/assistants/${args.id}`);
+          result = await response.json();
+        } else if (name === 'getCalls') {
+          // Map to GET /api/calls
+          const response = await fetch(`http://localhost:${port}/api/calls`);
+          result = await response.json();
+        } else if (name === 'getCall') {
+          // Map to GET /api/calls/:id
+          const response = await fetch(`http://localhost:${port}/api/calls/${args.id}`);
+          result = await response.json();
+        } else {
+          throw new Error(`Unknown tool: ${name}`);
+        }
+        
+        return res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(result)
+              }
+            ]
+          }
+        });
+      } catch (error: any) {
+        console.error('Error handling tool call:', error);
+        return res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32603,
+            message: `Internal error: ${error.message}`
+          }
+        });
+      }
+    } else {
+      // Unsupported method
+      return res.json({
+        jsonrpc: '2.0',
+        id: message.id,
+        error: {
+          code: -32601,
+          message: `Method not found: ${message.method}`
+        }
+      });
+    }
+  } catch (error: any) {
+    console.error('Error processing MCP message:', error);
+    return res.status(500).json({
+      jsonrpc: '2.0',
+      id: message.id || null,
+      error: {
+        code: -32603,
+        message: `Internal error: ${error.message}`
+      }
+    });
+  }
+});
+
+// Original API routes
 app.use('/api/calls', callsRouter);
 app.use('/api/assistants', assistantsRouter);
 app.use('/api/conversations', conversationsRouter);
