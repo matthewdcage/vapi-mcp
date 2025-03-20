@@ -1,198 +1,172 @@
 # Vapi MCP Server
 
-A Model Context Protocol (MCP) server for integrating Vapi's voice AI platform with Cursor and other MCP-compatible applications.
+This is the server component for the Vapi Voice AI Tools integration with Cursor via the Model Context Protocol (MCP).
 
-## Installation
+## Setup Guide
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/vapi-mcp-server.git
-```
+### 1. Environment Configuration
 
-2. Install dependencies:
-```bash
-cd vapi-mcp-server
-npm install
-```
-
-3. Build the project:
-```bash
-npm run build
-```
-
-## Configuration
-
-Create a `.env` file in the root directory with your Vapi API credentials:
+Create a `.env` file in this directory with your Vapi API credentials:
 
 ```
 # Vapi API Keys
-VAPI_PRIVATE_KEY=your_vapi_private_key
-VAPI_ORG_ID=your_vapi_org_id
-VAPI_KNOWLEDGE_ID=your_vapi_knowledge_id
-VAPI_JWT_PRIVATE=your_vapi_jwt_private
+VAPI_ORG_ID=your-org-id
+VAPI_PRIVATE_KEY=your-private-key
+VAPI_KNOWLEDGE_ID=your-knowledge-id
+VAPI_JWT_PRIVATE=your-jwt-private
 
 # Environment
 NODE_ENV=development
 ```
 
-## Project Structure
+### 2. Installation
 
-```
-vapi-mcp-server/
-├── dist/               # Compiled JavaScript output
-├── src/                # TypeScript source files
-│   ├── index.ts        # Main server entry point
-│   └── types.ts        # TypeScript interfaces
-├── .env                # Environment variables (create this file)
-├── package.json        # Dependencies and scripts
-└── tsconfig.json       # TypeScript configuration
+Install the dependencies:
+
+```bash
+npm install
 ```
 
-## Running the Server
+### 3. Build
 
-To start the server:
+Build the TypeScript code:
+
+```bash
+npm run build
+```
+
+### 4. Run
+
+Start the server:
 
 ```bash
 npm start
 ```
 
-For development with automatic reloading:
+## Cursor MCP Integration
+
+### Proper Configuration (Important!)
+
+To avoid the "Client Closed" error in Cursor, ensure your `.cursor/mcp.json` configuration includes:
+
+1. **The correct working directory (`cwd`)** 
+2. **All environment variables**
+3. **Correct file path to the server**
+
+Example configuration:
+
+```json
+"Vapi Voice AI Tools": {
+  "command": "node",
+  "type": "stdio",
+  "args": [
+    "/Users/matthewcage/Documents/AA-GitHub/MCP/vapi-mcp/vapi-mcp-server/dist/index.js"
+  ],
+  "cwd": "/Users/matthewcage/Documents/AA-GitHub/MCP/vapi-mcp/vapi-mcp-server",
+  "env": {
+    "VAPI_ORG_ID": "000c3516-6c06-4462-bd9d-2f15d109478e",
+    "VAPI_PRIVATE_KEY": "8300521f-7421-4088-8a13-d0df6ea29962",
+    "VAPI_KNOWLEDGE_ID": "f2a554b0-fe9a-456e-a7ab-3294d3689534",
+    "VAPI_JWT_PRIVATE": "da163ef8-ac5b-43d1-9117-a002aaba0926",
+    "NODE_ENV": "development"
+  }
+}
+```
+
+## Critical Configuration Files
+
+### 1. package.json
+
+Ensure your `package.json` has the following settings:
+
+```json
+{
+  "name": "vapi-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Vapi API integration",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc -w & node --watch dist/index.js"
+  }
+}
+```
+
+The **"type": "module"** line is critical for ES modules to work correctly.
+
+### 2. tsconfig.json
+
+Ensure your `tsconfig.json` has the correct module settings:
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  }
+}
+```
+
+## Common Issues and Solutions
+
+### 1. "Client Closed" Error in Cursor
+
+**Problem**: The tools panel in Cursor shows "Client Closed" even though the server appears to be properly configured.
+
+**Solutions**:
+- Ensure the `cwd` parameter is set in your mcp.json configuration
+- Make sure all environment variables are explicitly passed in the configuration
+- Verify the server can run standalone with `node dist/index.js`
+- Check for any errors in the console when starting the server
+- Make sure the `package.json` has `"type": "module"` set
+
+### 2. ES Module Errors
+
+**Problem**: Errors about imports not being recognized or "Cannot use import outside a module".
+
+**Solutions**:
+- Add `"type": "module"` to your `package.json`
+- Update `tsconfig.json` to use `"module": "NodeNext"` and `"moduleResolution": "NodeNext"`
+- Use `.js` extensions in your imports even in TypeScript files
+- Rebuild the project with `npm run build`
+
+### 3. "Cannot find module" Error
+
+**Problem**: Node.js cannot find a module or the main server file.
+
+**Solutions**:
+- Ensure you're running from the correct working directory
+- Check that all dependencies are installed with `npm install`
+- Rebuild the project with `npm run build`
+- Verify the file paths in your mcp.json configuration are absolute and correct
+- Use `node --trace-warnings dist/index.js` to see detailed error messages
+
+## Debugging
+
+To run the server with additional debugging information:
 
 ```bash
-npm run dev
+node --trace-warnings dist/index.js
 ```
 
-## Connecting to Cursor
+Or with Node.js inspector:
 
-1. Configure Cursor to use this MCP server by adding the following to your Cursor settings:
-
-```json
-{
-  "mcp.config.servers": [
-    {
-      "name": "Vapi MCP Server",
-      "command": "node /path/to/vapi-mcp-server/dist/index.js"
-    }
-  ]
-}
+```bash
+node --inspect dist/index.js
 ```
 
-**Important**: Use the full absolute path to the `dist/index.js` file.
+## MCP Server Structure
 
-2. Restart Cursor after adding the configuration.
+The server implements three main Vapi tools:
 
-## Available Tools
+1. **vapi_call** - Make outbound calls
+2. **vapi_assistant** - Manage voice assistants
+3. **vapi_conversation** - Retrieve conversation details
 
-The server provides the following tools:
-
-### 1. Vapi Call Tool
-
-Make outbound phone calls using Vapi's voice AI platform.
-
-**Tool Name**: `vapi_call`
-
-Example input:
-```json
-{
-  "phoneNumber": "+1234567890",
-  "assistantId": "asst_123456"
-}
-```
-
-Or with a custom assistant configuration:
-
-```json
-{
-  "phoneNumber": "+1234567890",
-  "assistantConfig": {
-    "name": "Sales Assistant",
-    "model": "gpt-4",
-    "voice": "alloy",
-    "firstMessage": "Hello, I'm calling from Example Company. How are you today?",
-    "maxDuration": 300
-  }
-}
-```
-
-### 2. Vapi Assistant Tool
-
-Manage voice assistants on the Vapi platform.
-
-**Tool Name**: `vapi_assistant`
-
-Example input for creating an assistant:
-```json
-{
-  "action": "create",
-  "params": {
-    "name": "Sales Assistant",
-    "model": "gpt-4",
-    "voice": "alloy",
-    "firstMessage": "Hello, I'm calling from Example Company. How are you today?",
-    "instructions": "You are a friendly sales representative trying to understand the customer's needs.",
-    "maxDuration": 300
-  }
-}
-```
-
-Example input for getting, updating, or deleting an assistant:
-```json
-{
-  "action": "get",
-  "assistantId": "asst_123456"
-}
-```
-
-### 3. Vapi Conversation Tool
-
-Retrieve conversation details and transcripts from Vapi calls.
-
-**Tool Name**: `vapi_conversation`
-
-Example input for getting a conversation transcript:
-```json
-{
-  "action": "get",
-  "callId": "call_123456"
-}
-```
-
-Example input for listing recent conversations:
-```json
-{
-  "action": "list",
-  "filters": {
-    "limit": 10,
-    "offset": 0
-  }
-}
-```
-
-## Development
-
-### Adding New Tools
-
-To add a new tool:
-
-1. Define the Zod schema for the tool's input in `index.ts`
-2. Add the tool to the list returned by the `ListToolsRequestSchema` handler
-3. Add a case for the tool in the `CallToolRequestSchema` handler
-
-### API Documentation
-
-For more details on the Vapi API:
-- [Vapi Documentation](https://docs.vapi.ai/)
-- [Server SDK](https://github.com/vapi-ai/server-sdk)
-
-## Troubleshooting
-
-If you encounter issues:
-
-1. Check that your Vapi API credentials are correct in the `.env` file
-2. Ensure the build completed successfully with `npm run build`
-3. Check the server logs for error messages
-4. Make sure the path in your Cursor configuration points to the correct `dist/index.js` file
-
-## License
-
-MIT 
+Refer to the source code documentation for details on how each tool works. 

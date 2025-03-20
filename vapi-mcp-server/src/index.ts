@@ -14,6 +14,15 @@ import dotenv from "dotenv";
 // Load environment variables
 dotenv.config();
 
+// Log environment variables (without exposing sensitive data)
+console.log("Vapi Environment:", {
+    VAPI_ORG_ID: process.env.VAPI_ORG_ID ? "Set" : "Not set",
+    VAPI_PRIVATE_KEY: process.env.VAPI_PRIVATE_KEY ? "Set" : "Not set",
+    VAPI_KNOWLEDGE_ID: process.env.VAPI_KNOWLEDGE_ID ? "Set" : "Not set",
+    VAPI_JWT_PRIVATE: process.env.VAPI_JWT_PRIVATE ? "Set" : "Not set",
+    NODE_ENV: process.env.NODE_ENV
+});
+
 // Initialize Vapi client
 const vapiClient = new VapiClient({
     token: () => {
@@ -21,6 +30,7 @@ const vapiClient = new VapiClient({
         if (!key) {
             throw new Error("VAPI_PRIVATE_KEY environment variable is not set");
         }
+        console.log("Initializing Vapi client with auth token");
         return key;
     },
 });
