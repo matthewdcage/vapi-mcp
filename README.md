@@ -141,6 +141,42 @@ Once configured, the Vapi tools will be available to the AI assistant in Cursor.
 3. **Retrieve conversation details:**
    "Show me the transcript of my last sales call."
 
+## Practical Use Cases in Development
+
+Vapi MCP offers several valuable capabilities when integrated with your development environment:
+
+1. **Voice-enabled AI calls from Cursor:**
+   - Make outbound calls directly from your IDE while coding
+   - Connect with customers or clients without switching applications
+   - Test voice interactions for applications you're building
+
+2. **Assistant management in context:**
+   - Create and customize voice agents based on specific project needs
+   - Adjust assistant parameters like voice, model, and prompts while developing
+   - Test different voice personas for your applications
+
+3. **Workflow automation:**
+   - Automate customer outreach from your development environment
+   - Schedule voice follow-ups based on project milestones
+   - Create voice notifications for CI/CD processes or deployment status
+
+4. **Conversation tracking:**
+   - Retrieve and analyze transcripts of previous calls
+   - Extract requirements or feedback directly from conversation history
+   - Keep call records linked to relevant code sections
+
+5. **Development-specific use cases:**
+   - Get spoken explanations of complex code sections
+   - Voice-dictate code comments or documentation while working
+   - Conduct code reviews with voice assistance
+
+6. **Team collaboration:**
+   - Send voice briefings to team members
+   - Create voice-based task assignments
+   - Conduct quick voice standups through Cursor
+
+The Vapi MCP integration serves as a bridge between your coding environment and voice AI capabilities, allowing for seamless voice interactions without disrupting your development workflow.
+
 ## Development
 
 ### Project Structure
@@ -181,6 +217,7 @@ The current implementation uses mock data. To connect to the actual Vapi API:
 - Ensure Node.js is installed and up to date
 - Check that all dependencies are installed (`npm install`)
 - Verify the build completed successfully (`npm run build`)
+- Make sure you're running the command from the correct directory
 
 ### Tools not appearing in Cursor
 
