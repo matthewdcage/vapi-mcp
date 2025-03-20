@@ -15,7 +15,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Log environment variables (without exposing sensitive data)
-console.log("Vapi Environment:", {
+console.error("Vapi Environment:", {
     VAPI_ORG_ID: process.env.VAPI_ORG_ID ? "Set" : "Not set",
     VAPI_PRIVATE_KEY: process.env.VAPI_PRIVATE_KEY ? "Set" : "Not set",
     VAPI_KNOWLEDGE_ID: process.env.VAPI_KNOWLEDGE_ID ? "Set" : "Not set",
@@ -30,7 +30,7 @@ const vapiClient = new VapiClient({
         if (!key) {
             throw new Error("VAPI_PRIVATE_KEY environment variable is not set");
         }
-        console.log("Initializing Vapi client with auth token");
+        console.error("Initializing Vapi client with auth token");
         return key;
     },
 });
@@ -94,6 +94,18 @@ async function main() {
         }
     );
 
+    // Verify connection to Vapi API
+    try {
+        console.error("Verifying connection to Vapi API...");
+        // Attempt to list assistants to verify API connection
+        await vapiClient.assistants.list();
+        console.error("✓ Successfully connected to Vapi API");
+    } catch (error) {
+        console.error("✗ Failed to connect to Vapi API:", error);
+        console.error("The server will continue to run but API calls may fail.");
+        console.error("Check your API key and internet connection.");
+    }
+
     // Set up tool handlers
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
         tools: [
@@ -122,7 +134,7 @@ async function main() {
             switch (name) {
                 case "vapi_call": {
                     const validatedArgs = CallToolSchema.parse(args);
-                    console.log(`Making call to ${validatedArgs.phoneNumber}`);
+                    console.error(`Making call to ${validatedArgs.phoneNumber}`);
                     
                     try {
                         // Prepare call parameters based on the validated arguments
@@ -171,7 +183,7 @@ async function main() {
                 
                 case "vapi_assistant": {
                     const validatedArgs = AssistantToolSchema.parse(args);
-                    console.log(`Performing ${validatedArgs.action} operation on assistant`);
+                    console.error(`Performing ${validatedArgs.action} operation on assistant`);
                     
                     switch (validatedArgs.action) {
                         case "create": {
@@ -341,7 +353,7 @@ async function main() {
                 
                 case "vapi_conversation": {
                     const validatedArgs = ConversationToolSchema.parse(args);
-                    console.log(`Performing ${validatedArgs.action} operation on conversation`);
+                    console.error(`Performing ${validatedArgs.action} operation on conversation`);
                     
                     switch (validatedArgs.action) {
                         case "get": {
@@ -454,7 +466,7 @@ async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
     
-    console.log("Vapi MCP Server started successfully");
+    console.error("Vapi MCP Server started successfully");
 }
 
 main().catch((error: unknown) => {
