@@ -9,7 +9,13 @@
     "dev": "tsc -w & node --watch dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["vapi", "api", "mcp", "http", "server"],
+  "keywords": [
+    "vapi",
+    "api",
+    "mcp",
+    "http",
+    "server"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -20,6 +26,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.18.2",
+    "node-fetch": "^2.6.9",
     "typescript": "^5.3.3"
   }
 }

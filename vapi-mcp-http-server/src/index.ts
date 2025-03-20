@@ -54,7 +54,7 @@ app.get('/sse', (req, res) => {
 });
 
 // MCP messages endpoint for client to post messages
-app.post('/mcp-messages', async (req, res) => {
+app.post('/mcp-messages', express.json(), async (req: express.Request, res: express.Response) => {
   try {
     const message = req.body;
     console.log('Received MCP message:', message);
