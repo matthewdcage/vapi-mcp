@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: vapi-express-character-design
+    env: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: node dist/vapiai/main.js
+    plan: starter
+    envVars:
+      - key: HOST
+        value: "0.0.0.0"
+      - key: WEATHER_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: VAPI_BASE_URL
+        value: "https://api.vapi.ai"
+      - key: VAPI_API_KEY
+        sync: false

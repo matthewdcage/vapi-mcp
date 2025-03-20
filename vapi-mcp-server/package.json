@@ -1,0 +1,26 @@
+{
+  "name": "vapi-mcp-server",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc -w & node --watch dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "MCP Server for Vapi API integration",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "@types/node": "^22.13.10",
+    "@vapi-ai/server-sdk": "^0.5.0",
+    "@vapi-ai/web": "^2.2.4",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.8.2",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.4"
+  },
+  "type": "module"
+}
