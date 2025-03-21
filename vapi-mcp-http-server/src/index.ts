@@ -72,7 +72,22 @@ app.post('/mcp-messages', express.json(), async (req: express.Request, res: expr
     }
     
     // Handle different MCP protocol methods
-    if (message.method === 'mcp/list_capabilities') {
+    if (message.method === 'initialize') {
+      // Handle initialization request
+      return res.json({
+        jsonrpc: '2.0',
+        id: message.id,
+        result: {
+          capabilities: {
+            tools: true,
+            resources: true,
+            prompts: true,
+            roots: false
+          },
+          protocolVersion: '2024-11-05'
+        }
+      });
+    } else if (message.method === 'mcp/list_capabilities') {
       // Return MCP capabilities
       return res.json({
         jsonrpc: '2.0',
