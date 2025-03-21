@@ -39,7 +39,7 @@ app.get('/sse', (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   
   // Send the initial endpoint event as required by MCP protocol
-  res.write(`event: endpoint\ndata: "/mcp-messages"\n\n`);
+  res.write(`event: endpoint\ndata: /mcp-messages\n\n`);
   
   // Keep the connection alive
   const keepAliveInterval = setInterval(() => {
