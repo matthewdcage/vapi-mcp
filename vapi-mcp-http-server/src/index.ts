@@ -80,8 +80,8 @@ app.post('/mcp-messages', express.json(), async (req: express.Request, res: expr
         result: {
           capabilities: {
             tools: true,
-            resources: false,
-            prompts: false,
+            resources: true,
+            prompts: true,
             roots: false
           },
           schema_version: '2024-11-05'
@@ -189,6 +189,83 @@ app.post('/mcp-messages', express.json(), async (req: express.Request, res: expr
           ]
         }
       });
+    } else if (message.method === 'prompts/list') {
+      // Return available prompts
+      return res.json({
+        jsonrpc: '2.0',
+        id: message.id,
+        result: {
+          prompts: [
+            {
+              id: "vapi-assistant-prompt",
+              name: "Vapi Assistant Prompt",
+              description: "A prompt for creating a Vapi voice assistant"
+            }
+          ]
+        }
+      });
+    } else if (message.method === 'prompts/get') {
+      // Return a specific prompt
+      const promptId = message.params.id;
+      if (promptId === "vapi-assistant-prompt") {
+        return res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            prompt: {
+              id: "vapi-assistant-prompt",
+              name: "Vapi Assistant Prompt",
+              description: "A prompt for creating a Vapi voice assistant",
+              content: "You are a helpful voice assistant powered by Vapi."
+            }
+          }
+        });
+      } else {
+        return res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32602,
+            message: `Prompt not found: ${promptId}`
+          }
+        });
+      }
+    } else if (message.method === 'resources/list') {
+      // Return available resources
+      return res.json({
+        jsonrpc: '2.0',
+        id: message.id,
+        result: {
+          resources: [
+            {
+              uri: "vapi-docs",
+              name: "Vapi Documentation",
+              description: "Documentation for the Vapi API"
+            }
+          ]
+        }
+      });
+    } else if (message.method === 'resources/get') {
+      // Return a specific resource
+      const resourceUri = message.params.uri;
+      if (resourceUri === "vapi-docs") {
+        return res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          result: {
+            content: "# Vapi Documentation\n\nThis is the documentation for the Vapi voice assistant API."
+          }
+        });
+      } else {
+        return res.json({
+          jsonrpc: '2.0',
+          id: message.id,
+          error: {
+            code: -32602,
+            message: `Resource not found: ${resourceUri}`
+          }
+        });
+      }
     } else if (message.method === 'tools/call') {
       // Handle tool calls by mapping to our API
       const { name, arguments: args } = message.params;
